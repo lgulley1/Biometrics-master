@@ -125,7 +125,13 @@ def on_move(x, y): #detects movement between quadrants
 			for k in range(1,gridSize+1):
 				if x <= squareSizeX*k and y <= squareSizeY*i and x >= (squareSizeX*(k-1)) and y >= (squareSizeY*(i-1)):
 					updatePos(posMovedTo+1)
-				posMovedTo += 1
+				posMovedTo += 
+	else:
+		username = input("Please enter a username: ")
+		print("Recording starting in " + str(delay) + "seconds...")
+		startTime = timeit.default_timer()
+		time.sleep(delay)
+		startGame = True
 
 
 def recordResults():
@@ -152,7 +158,8 @@ def recordResults():
 	nAvgMovement = {}
 	for i in average_movement:
 		nAvgMovement.update({str(i) : average_movement[str(i)]/len(average_movement)})
-		
+
+	quadFreq = nAvgMovement #db ref	
 	f.write("\nLocation Frequency: " + str(nAvgMovement))
 	f.close()
 
@@ -161,7 +168,11 @@ def recordResults():
 	if leftClicks == 0 and rightClicks == 0:
 		f2.write("Left Clicks: 0\n")
 		f2.write("Right Clicks: 0\n")
+		leftClicks = 0
+		rightClicks = 0
 	else:
+		leftClicks = (leftClicks)/(leftClicks + rightClicks) #db ref
+		rightClicks = (rightClicks)/(leftClicks + rightClicks) #db ref
 		f2.write("Left Clicks: " + str((leftClicks)/(leftClicks + rightClicks)) + "\n")
 		f2.write("Right Clicks: " + str((rightClicks)/(leftClicks + rightClicks)) + "\n")
 	f2.close()
@@ -174,6 +185,8 @@ def recordResults():
 		f3.write(str(i) + "\n")
 	f3.write("Average Time: " + str(sum(movement_speed)/len(movement_speed)))
 	f3.close()
+
+	movement_speed = sum(movement_speed)/len(movement_speed) #db ref
 
 	#records all above results 
 	f4 = open("all_results.txt", "w+")
@@ -188,6 +201,7 @@ def recordResults():
 	f4.write(str(finalResults))
 	f4.close()
 	#Save to the database
+
 	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeed, username) VALUES(?)''',
 	 (((leftClicks)/(leftClicks + rightClicks)), ((rightClicks)/(leftClicks + rightClicks)),(sum(movement_speed)/len(movement_speed)),
 	 (sum(movement_speed)/len(movement_speed))), username)
