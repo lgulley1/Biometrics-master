@@ -15,19 +15,31 @@ import time
 import math
 import sqlite3
 
+#get info from user
+username = "Chris"
+
 #db setup
-conn = sqlite3.connect('example.db')
+conn = sqlite3.connect('test.db')
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS USER
-             (userID INTEGER PRIMARY KEY, 
-			 name text)''')
+             (username TEXT PRIMARY KEY)''')
 c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
              (leftClick real, 
 			 rightClick real, 
 			 time real, 
 			 movementSpeeds text,
-			 userID INTEGER, 
-			 FOREIGN KEY(userID) REFERENCES USER(userID))''')
+			 username TEXT, 
+			 FOREIGN KEY(username) REFERENCES USER(username))''')
+
+#determine if user exists
+def userExists(name):
+	c.execute('''SELECT EXISTS(SELECT * FROM USER WHERE username=?)''', (name,))
+	exists = c.fetchone()
+	return (exists == 1)
+
+#add user if they dont already exist
+if(userExists(username) == False):
+	c.execute('''INSERT INTO USER(username) VALUES(?)''',username)
 
 
 #forces game to wait until left click on top left of screen
@@ -58,6 +70,7 @@ endTime = 0
 
 #used to count occurrences
 DISTANCE = 7
+
 
 #removes all entries in a dictionary which have a second value of 0
 def removeZeroes(d):
@@ -174,6 +187,10 @@ def recordResults():
 	finalResults.update({"time" : sum(movement_speed)/len(movement_speed)})
 	f4.write(str(finalResults))
 	f4.close()
+	#Save to the database
+	c.execute('''insert or replace into USER () values
+(()''')
+	
 
 
 def on_click(x, y, button, pressed): #starts/stops game and records mouse clicks

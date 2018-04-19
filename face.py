@@ -9,8 +9,8 @@ conn = sqlite3.connect('example.db')
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS FACE_DATA
              (score real,
-			 userID INTEGER,
-			 FOREIGN KEY(userID) REFERENCES USER(userID))''')
+			 username TEXT,
+			 FOREIGN KEY(username) REFERENCES USER(username))''')
 
 
 def compareTwoImages(img1, img2): #returns similarity score between two jpeg images
