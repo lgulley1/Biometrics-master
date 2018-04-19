@@ -22,9 +22,9 @@ username = "Chris"
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS USER
-             (username TEXT PRIMARY KEY)''')
+			 (username TEXT PRIMARY KEY)''')
 c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
-             (leftClick real, 
+			 (leftClick real, 
 			 rightClick real, 
 			 time real, 
 			 movementSpeeds text,
@@ -81,11 +81,11 @@ def removeZeroes(d):
 	return newD
 
 def counter_cosine_similarity(c1, c2): #find similarity score between two dictionaries
-    terms = set(c1).union(c2)
-    dotprod = sum(c1.get(k, 0) * c2.get(k, 0) for k in terms)
-    magA = math.sqrt(sum(c1.get(k, 0)**2 for k in terms))
-    magB = math.sqrt(sum(c2.get(k, 0)**2 for k in terms))
-    return round((dotprod / (magA * magB)), 2)
+	terms = set(c1).union(c2)
+	dotprod = sum(c1.get(k, 0) * c2.get(k, 0) for k in terms)
+	magA = math.sqrt(sum(c1.get(k, 0)**2 for k in terms))
+	magB = math.sqrt(sum(c2.get(k, 0)**2 for k in terms))
+	return round((dotprod / (magA * magB)), 2)
 
 
 def countOccurrences(s): #count number of occurences in string (s), based on distance of (DISTANCE), returns dictionary
@@ -126,6 +126,12 @@ def on_move(x, y): #detects movement between quadrants
 				if x <= squareSizeX*k and y <= squareSizeY*i and x >= (squareSizeX*(k-1)) and y >= (squareSizeY*(i-1)):
 					updatePos(posMovedTo+1)
 				posMovedTo += 1
+	else:
+		username = input("Please enter a username: ")
+		print("Recording starting in " + str(delay) + "seconds...")
+		startTime = timeit.default_timer()
+		time.sleep(delay)
+		startGame = True
 
 
 def recordResults():
@@ -152,6 +158,8 @@ def recordResults():
 	nAvgMovement = {}
 	for i in average_movement:
 		nAvgMovement.update({str(i) : average_movement[str(i)]/len(average_movement)})
+
+	quadFreq = nAvgMovement #db ref
 		
 	f.write("\nLocation Frequency: " + str(nAvgMovement))
 	f.close()
@@ -161,7 +169,11 @@ def recordResults():
 	if leftClicks == 0 and rightClicks == 0:
 		f2.write("Left Clicks: 0\n")
 		f2.write("Right Clicks: 0\n")
+		leftClicks = 0
+		rightClicks = 0
 	else:
+		leftClicks = (leftClicks)/(leftClicks + rightClicks) #db ref
+		rightClicks = (rightClicks)/(leftClicks + rightClicks) #db ref
 		f2.write("Left Clicks: " + str((leftClicks)/(leftClicks + rightClicks)) + "\n")
 		f2.write("Right Clicks: " + str((rightClicks)/(leftClicks + rightClicks)) + "\n")
 	f2.close()
@@ -174,6 +186,8 @@ def recordResults():
 		f3.write(str(i) + "\n")
 	f3.write("Average Time: " + str(sum(movement_speed)/len(movement_speed)))
 	f3.close()
+
+	movement_speed = sum(movement_speed)/len(movement_speed) #db ref
 
 	#records all above results 
 	f4 = open("all_results.txt", "w+")
@@ -189,7 +203,7 @@ def recordResults():
 	f4.close()
 	#Save to the database
 	c.execute('''insert or replace into USER () values
-(()''')
+(()''')n
 	
 
 
