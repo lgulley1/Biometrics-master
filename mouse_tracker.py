@@ -39,6 +39,13 @@ def userExists(name):
 	exists = c.fetchone()
 	return (exists == 1)
 
+#get data from database
+def getAllMouseData():
+	data = []
+	c.execute('''SELECT * FROM MOUSE_DATA''')
+	data = c.fetchall()
+	print(data[0][2])
+
 #add user if they dont already exist
 if(userExists(username) == False):
 	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
@@ -216,6 +223,8 @@ def recordResults():
 	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
 	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 	conn.commit()
+	getAllMouseData()
+	conn.close()
 	
 
 
