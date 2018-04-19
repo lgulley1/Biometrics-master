@@ -15,9 +15,17 @@ import time
 import math
 import sqlite3
 import random
+import ast
 
-#get info from user
+#classes
+class MouseData:
+	leftclick = -1
+	rightclick = -1
+	time = -1
+	movemement_freq = {}
+	username = ""
 
+#DEBUG
 username = str(random.randint(0,3242342352))
 
 #db setup
@@ -40,11 +48,25 @@ def userExists(name):
 	return (exists == 1)
 
 #get data from database
+#returns an array of MouseData objects
 def getAllMouseData():
 	data = []
+	dataObjs = []
 	c.execute('''SELECT * FROM MOUSE_DATA''')
 	data = c.fetchall()
-	print(data[0][2])
+	for row in data:
+		stringFreq = row[2]
+		freq = ast.literal_eval(stringFreq)
+		dataObject = MouseData()
+		dataObject.leftclick = row[0]
+		dataObject.rightclick = row[1]
+		dataObject.time = freq
+		dataObject.movemement_freq = row[3]
+		dataObject.username = row[4]
+		dataObjs.append(dataObject)
+	return dataObjs
+
+	
 
 #add user if they dont already exist
 if(userExists(username) == False):
@@ -119,7 +141,7 @@ def updatePos(newPos): #updates the new position and saves it to "movement", and
 	if pos != newPos:
 		pos = newPos
 		movement.append(pos) #save position
-		print("Moved to pos: " + str(pos))
+		#print("Moved to pos: " + str(pos))
 		timeChange = timeit.default_timer() - timeSinceLastMove
 		movement_speed.append(timeChange) #save time
 		timeSinceLastMove = timeit.default_timer()
@@ -184,7 +206,7 @@ def recordResults():
 	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
 	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 	conn.commit()
-	getAllMouseData()
+	print(getAllMouseData())
 	conn.close()
 	
 
