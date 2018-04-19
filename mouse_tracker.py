@@ -1,7 +1,7 @@
 #USAGE
 '''
 Run script.
-To begin recording, left click on very top left of screen. Recording will begin 10 seconds after the click.
+To begin recording, left click on very top left of screen. Recording will begin {DELAY} seconds after the click.
 To end recording, right click the very top left of screen.
 Results will be stored in whatever directory the script is run
 *Ensure grid size is correct before running
@@ -38,7 +38,8 @@ c.execute('''CREATE TABLE IF NOT EXISTS FACE_DATA
 startGame = False
 
 #the number of quadrants is the square of this number
-gridSize = 100
+gridSize = 5
+delay = 4 #set delay for recording after top-left click
 
 #stores current position of mouse and time since last quadrant transfer
 pos = -1
@@ -193,6 +194,7 @@ def on_click(x, y, button, pressed): #starts/stops game and records mouse clicks
 		leftClicks -= 1
 		startTime = timeit.default_timer()
 		startGame = True
+		time.sleep(delay)
 	if x == 0 and y == 0 and button == mouse.Button.right: #ends recording
 		rightClicks -= 1
 		endTime = timeit.default_timer()
