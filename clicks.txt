@@ -1,2 +1,2 @@
-Left Clicks: 1.0
-Right Clicks: 0.0
+Left Clicks: 0.5355086372360844
+Right Clicks: 0.4644913627639155

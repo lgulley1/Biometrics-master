@@ -131,7 +131,7 @@ def on_move(x, y): #detects movement between quadrants
 				posMovedTo += 1
 	else:
 		username = input("Please enter a username: ")
-		print("Recording starting in " + str(delay) + "seconds...")
+		print("Recording starting in " + str(delay) + " seconds...")
 		startTime = timeit.default_timer()
 		time.sleep(delay)
 		startGame = True
@@ -144,75 +144,36 @@ def recordResults():
 	global rightClicks
 	global movement_speed
 
-	overallTime = endTime - startTime
-	average_movement = {}
-	#records every mouse movement as string
-	f = open("mouse_movements.txt", "w+")
-	for i in range(0, len(movement)):
-		if i != len(movement) - 1:
-			f.write(str(movement[i]))
-		else:
-			f.write(str(movement[i]))
-	#records average usage of each quadrant
 	#divides each quadrant with a value > 0 by the total number of quadrants with a value > 0
 	movement_count = {}
+	average_movement = {}
+	nAvgMovement = {}
 	for i in range(1, gridSize**2 + 1):
 		movement_count.update({str(i) : movement.count(i)}) #counts number of times quadrant accessed
 	for i in range(1, gridSize**2 + 1):
 		if(movement_count[str(i)] != 0): #can be modified to accept only higher values, removes all values that = 0 from movement_count
 			average_movement.update({str(i) : movement_count[str(i)]})
 	#average movement is now a dict of strings and their counts, with all 0's removed
-	nAvgMovement = {}
 	for i in average_movement:
 		nAvgMovement.update({str(i) : average_movement[str(i)]/len(average_movement)})
 
-	quadFreq = nAvgMovement #db ref	
-	quadFreqString = str(quadFreq)
-	f.write("\nLocation Frequency: " + str(nAvgMovement))
-	f.close()
+	quadFreqString = str(nAvgMovement) #db ref
 
 	#records number of clicks
-	f2 = open("clicks.txt", "w+")
 	if leftClicks == 0 and rightClicks == 0:
-		f2.write("Left Clicks: 0\n")
-		f2.write("Right Clicks: 0\n")
 		leftClicks = 0
 		rightClicks = 0
 	else:
 		leftClicks = (leftClicks)/(leftClicks + rightClicks) #db ref
 		rightClicks = (rightClicks)/(leftClicks + rightClicks) #db ref
-		f2.write("Left Clicks: " + str((leftClicks)/(leftClicks + rightClicks)) + "\n")
-		f2.write("Right Clicks: " + str((rightClicks)/(leftClicks + rightClicks)) + "\n")
-	f2.close()
 
 	#records mouse speed between quadrants
 	#find value by dividing sum of all movement speeds with the number of movement speeds recorded
-	f3 = open("mouse_speed.txt", "w+")
 	movement_speed.pop(0) #remove first element, because it's the first time and is always incorrect
-	for i in movement_speed:
-		f3.write(str(i) + "\n")
-	f3.write("Average Time: " + str(sum(movement_speed)/len(movement_speed)))
-	f3.close()
-
 	movement_speed = sum(movement_speed)/len(movement_speed) #db ref
 
 	#records all above results 
-	f4 = open("all_results.txt", "w+")
-	finalResults = nAvgMovement
-	if leftClicks == 0 and rightClicks == 0:
-		finalResults.update({"leftClicks" : 0})
-		finalResults.update({"rightClicks" : 0})
-	else:
-		finalResults.update({"leftClicks" : (leftClicks)/(leftClicks + rightClicks)})
-		finalResults.update({"rightClicks" : (rightClicks)/(leftClicks + rightClicks)})
-	#finalResults.update({"time" : sum(movement_speed)/len(movement_speed)})
-	f4.write(str(finalResults))
-	f4.close()
 	#Save to the database
-	
-	print(quadFreq)
-	print(quadFreqString)
-
 	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
 	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 	conn.commit()
