@@ -16,7 +16,7 @@ import math
 import sqlite3
 
 #get info from user
-username = "Chris"
+username = "testuser"
 
 #db setup
 conn = sqlite3.connect('test.db')
@@ -39,8 +39,8 @@ def userExists(name):
 
 #add user if they dont already exist
 if(userExists(username) == False):
-	c.execute('''INSERT INTO USER(username) VALUES(?)''',username)
-
+	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
+	
 
 #forces game to wait until left click on top left of screen
 startGame = False
@@ -188,8 +188,10 @@ def recordResults():
 	f4.write(str(finalResults))
 	f4.close()
 	#Save to the database
-	c.execute('''insert or replace into USER () values
-(()''')
+	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeed, username) VALUES(?)''',
+	 (((leftClicks)/(leftClicks + rightClicks)), ((rightClicks)/(leftClicks + rightClicks)),(sum(movement_speed)/len(movement_speed)),
+	 (sum(movement_speed)/len(movement_speed))), username)
+	conn.commit()
 	
 
 
