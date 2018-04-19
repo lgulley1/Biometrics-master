@@ -28,10 +28,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
 			 movementSpeeds text,
 			 userID INTEGER, 
 			 FOREIGN KEY(userID) REFERENCES USER(userID))''')
-c.execute('''CREATE TABLE IF NOT EXISTS FACE_DATA
-             (score real,
-			 userID INTEGER,
-			 FOREIGN KEY(userID) REFERENCES USER(userID))''')
 
 
 #forces game to wait until left click on top left of screen
