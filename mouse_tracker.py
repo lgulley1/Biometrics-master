@@ -14,9 +14,11 @@ import timeit
 import time
 import math
 import sqlite3
+import random
 
 #get info from user
-username = "testuser"
+
+username = str(random.randint(0,3242342352))
 
 #db setup
 conn = sqlite3.connect('test.db')
@@ -117,6 +119,7 @@ def updatePos(newPos): #updates the new position and saves it to "movement", and
 
 
 def on_move(x, y): #detects movement between quadrants
+	global startGame
 	if startGame:
 		squareSizeX = screen_width/gridSize #specifies quadrant size
 		squareSizeY = screen_height/gridSize
@@ -125,7 +128,7 @@ def on_move(x, y): #detects movement between quadrants
 			for k in range(1,gridSize+1):
 				if x <= squareSizeX*k and y <= squareSizeY*i and x >= (squareSizeX*(k-1)) and y >= (squareSizeY*(i-1)):
 					updatePos(posMovedTo+1)
-				posMovedTo += 
+				posMovedTo += 1
 	else:
 		username = input("Please enter a username: ")
 		print("Recording starting in " + str(delay) + "seconds...")
@@ -137,6 +140,10 @@ def on_move(x, y): #detects movement between quadrants
 def recordResults():
 	global startTime
 	global endTime
+	global leftClicks
+	global rightClicks
+	global movement_speed
+
 	overallTime = endTime - startTime
 	average_movement = {}
 	#records every mouse movement as string
@@ -160,6 +167,7 @@ def recordResults():
 		nAvgMovement.update({str(i) : average_movement[str(i)]/len(average_movement)})
 
 	quadFreq = nAvgMovement #db ref	
+	quadFreqString = str(quadFreq)
 	f.write("\nLocation Frequency: " + str(nAvgMovement))
 	f.close()
 
@@ -197,14 +205,16 @@ def recordResults():
 	else:
 		finalResults.update({"leftClicks" : (leftClicks)/(leftClicks + rightClicks)})
 		finalResults.update({"rightClicks" : (rightClicks)/(leftClicks + rightClicks)})
-	finalResults.update({"time" : sum(movement_speed)/len(movement_speed)})
+	#finalResults.update({"time" : sum(movement_speed)/len(movement_speed)})
 	f4.write(str(finalResults))
 	f4.close()
 	#Save to the database
+	
+	print(quadFreq)
+	print(quadFreqString)
 
-	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeed, username) VALUES(?)''',
-	 (((leftClicks)/(leftClicks + rightClicks)), ((rightClicks)/(leftClicks + rightClicks)),(sum(movement_speed)/len(movement_speed)),
-	 (sum(movement_speed)/len(movement_speed))), username)
+	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
+	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 	conn.commit()
 	
 
