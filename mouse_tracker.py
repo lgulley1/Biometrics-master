@@ -18,12 +18,12 @@ import sqlite3
 #db setup
 conn = sqlite3.connect('example.db')
 c = conn.cursor()
-c.execute('''CREATE TABLE USER
+c.execute('''CREATE TABLE IF NOT EXISTS USER
              (userID INTEGER PRIMARY KEY, name: text)''')
 )
-c.execute('''CREATE TABLE MOUSE_DATA
+c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
              (leftClick real, rightClick real, time real, movementSpeeds text, FOREIGNKEY(userID) REFERENCES USER(userID))''')
-c.execute('''CREATE TABLE FACE_DATA
+c.execute('''CREATE TABLE IF NOT EXISTS FACE_DATA
              (score real, FOREIGNKEY(userID) REFERENCES USER(userID))''')
 #forces game to wait until left click on top left of screen
 startGame = False
