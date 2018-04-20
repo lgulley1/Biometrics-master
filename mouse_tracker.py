@@ -18,8 +18,6 @@ import random
 
 #get info from user
 
-username = str(random.randint(0,3242342352))
-
 #db setup
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
@@ -38,10 +36,6 @@ def userExists(name):
 	c.execute('''SELECT EXISTS(SELECT * FROM USER WHERE username=?)''', (name,))
 	exists = c.fetchone()
 	return (exists == 1)
-
-#add user if they dont already exist
-if(userExists(username) == False):
-	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
 	
 
 #forces game to wait until left click on top left of screen
@@ -73,6 +67,20 @@ endTime = 0
 #used to count occurrences
 DISTANCE = 7
 
+#add user if they dont already exist and start game
+username = input("Please enter a username: ")
+while(True):
+	try:
+		if(userExists(username) == False):
+			c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
+			break
+	except:
+		username = input("Username invalid, choose another: ")
+
+print("Recording starting in " + str(delay) + " seconds...")
+startTime = timeit.default_timer()
+time.sleep(delay)
+startGame = True
 
 #removes all entries in a dictionary which have a second value of 0
 def removeZeroes(d):
@@ -129,12 +137,6 @@ def on_move(x, y): #detects movement between quadrants
 				if x <= squareSizeX*k and y <= squareSizeY*i and x >= (squareSizeX*(k-1)) and y >= (squareSizeY*(i-1)):
 					updatePos(posMovedTo+1)
 				posMovedTo += 1
-	else:
-		username = input("Please enter a username: ")
-		print("Recording starting in " + str(delay) + " seconds...")
-		startTime = timeit.default_timer()
-		time.sleep(delay)
-		startGame = True
 
 
 def recordResults():
@@ -154,30 +156,34 @@ def recordResults():
 		if(movement_count[str(i)] != 0): #can be modified to accept only higher values, removes all values that = 0 from movement_count
 			average_movement.update({str(i) : movement_count[str(i)]})
 	#average movement is now a dict of strings and their counts, with all 0's removed
+	#total count is the total number of times every quadrant has been visited, combined
+	totalCount = 0
+	for k in average_movement:
+		totalCount += average_movement[str(k)]
 	for i in average_movement:
-		nAvgMovement.update({str(i) : average_movement[str(i)]/len(average_movement)})
+		nAvgMovement.update({str(i) : average_movement[str(i)]/totalCount})
 
 	quadFreqString = str(nAvgMovement) #db ref
 
 	#records number of clicks
+	totalClicks = leftClicks + rightClicks
 	if leftClicks == 0 and rightClicks == 0:
 		leftClicks = 0
 		rightClicks = 0
 	else:
-		leftClicks = (leftClicks)/(leftClicks + rightClicks) #db ref
-		rightClicks = (rightClicks)/(leftClicks + rightClicks) #db ref
+		leftClicks = (leftClicks)/(totalClicks) #db ref
+		rightClicks = (rightClicks)/(totalClicks) #db ref
 
 	#records mouse speed between quadrants
 	#find value by dividing sum of all movement speeds with the number of movement speeds recorded
 	movement_speed.pop(0) #remove first element, because it's the first time and is always incorrect
-	movement_speed = sum(movement_speed)/len(movement_speed) #db ref
+	movement_speed = sum(movement_speed)/totalCount #db ref
 
-	#records all above results 
+	#records all above results
 	#Save to the database
 	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
 	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 	conn.commit()
-	
 
 
 def on_click(x, y, button, pressed): #starts/stops game and records mouse clicks
@@ -187,16 +193,11 @@ def on_click(x, y, button, pressed): #starts/stops game and records mouse clicks
 	global startTime
 	global endTime
 	if button == mouse.Button.left:
-		leftClicks += 1
+		leftClicks += 0.5
 	if button == mouse.Button.right:
-		rightClicks += 1
-	if x == 0 and y == 0 and button == mouse.Button.left: #starts recording
-		leftClicks -= 1
-		startTime = timeit.default_timer()
-		startGame = True
-		time.sleep(delay)
+		rightClicks += 0.5
 	if x == 0 and y == 0 and button == mouse.Button.right: #ends recording
-		rightClicks -= 1
+		rightClicks -= 0.5
 		endTime = timeit.default_timer()
 		return False
 
