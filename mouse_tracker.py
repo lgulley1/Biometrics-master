@@ -33,10 +33,6 @@ class MouseData:
 		self.username = u
 		return self
 
-
-#DEBUG
-username = str(random.randint(0,3242342352))
-
 #db setup
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
@@ -47,6 +43,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
 			 rightClick real, 
 			 time real, 
 			 movementSpeeds text,
+			 faceScore real,
 			 username TEXT, 
 			 FOREIGN KEY(username) REFERENCES USER(username))''')
 
@@ -66,17 +63,9 @@ def getAllMouseData():
 	for row in data:
 		stringFreq = row[2]
 		freq = ast.literal_eval(stringFreq)
-		dataObject = MouseData().newMD(row[0], row[1], freq, row[3], row[4])
+		dataObject = MouseData().newMD(row[0], row[1], freq, row[3], row[5])
 		dataObjs.append(dataObject)
 	return dataObjs
-
-
-
-
-#add user if they dont already exist
-if(userExists(username) == False):
-	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
-	
 
 #forces game to wait until left click on top left of screen
 startGame = False
@@ -114,13 +103,11 @@ timeFreqWeight = .6
 movementSpeedWeight = .2
 #add user if they dont already exist and start game
 username = input("Please enter a username: ")
-while(True):
-	try:
-		if(userExists(username) == False):
-			c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
-			break
-	except:
-		username = input("Username invalid, choose another: ")
+
+try:
+	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
+except:
+	print('testing...')
 
 print("Recording starting in " + str(delay) + " seconds...")
 startTime = timeit.default_timer()
@@ -152,13 +139,21 @@ def createScoresFor(currentData: MouseData):
 	for d in data:	
 		lDiff = abs(currentData.leftclick - d.leftclick)
 		rDiff = abs(currentData.rightclick - d.rightclick)
-		tDiff = counter_cosine_similarity(currentData.time, d.time)
+		tDiff = 1 - counter_cosine_similarity(currentData.time, d.time)
 		mDiff = abs(currentData.movemementSpeed - float(d.movemementSpeed))
 		scores.update({d.username: [lDiff, rDiff, tDiff, mDiff]})
 	#do the comparisons and give ranks for each metric
 	for user in scores:
-		
-	return score
+		print(scores[user][0])
+
+	userFinalRanks = {}
+
+	for user in scores:
+		finalRank = scores[user][0]*leftClickWeight + scores[user][1]*rightClickWeight + scores[user][2]*timeFreqWeight + scores[user][3]*movementSpeedWeight
+		userFinalRanks.update({user : finalRank})
+
+	sortedRanks = sorted(userFinalRanks.items(), key=lambda x:x[1])
+	return sortedRanks
 
 
 def countOccurrences(s): #count number of occurences in string (s), based on distance of (DISTANCE), returns dictionary
@@ -208,6 +203,9 @@ def recordResults():
 	global leftClicks
 	global rightClicks
 	global movement_speed
+	global faceScore
+	#DEBUG
+	faceScore = 0
 
 	#divides each quadrant with a value > 0 by the total number of quadrants with a value > 0
 	movement_count = {}
@@ -245,11 +243,26 @@ def recordResults():
 
 	#records all above results
 	#Save to the database
-	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
-	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
-	conn.commit()
+
 	curr = MouseData().newMD(leftClicks, rightClicks, safeFreq, movement_speed, username)
 	print(createScoresFor(curr))
+	ranks = createScoresFor(curr)
+
+	index = -1
+	for i in range(0, len(ranks)):
+		if ranks[i][0] == curr.username:
+			index = i
+
+	#determine if user valid
+	if index != -1 and index <= 3:
+		print('Accepted.')
+	else:
+		print('Rejected.')
+
+	if not userExists(curr.username):
+		c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, faceScore, username) VALUES(?,?,?,?,?,?)''',
+	 	(leftClicks, rightClicks, quadFreqString, movement_speed, faceScore, username ))
+		conn.commit()
 	conn.close()
 	
 

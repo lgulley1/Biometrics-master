@@ -4,15 +4,6 @@ from cv2 import *
 import time
 import os
 
-#db setup
-conn = sqlite3.connect('example.db')
-c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS FACE_DATA
-             (score real,
-			 username TEXT,
-			 FOREIGN KEY(username) REFERENCES USER(username))''')
-
-
 def compareTwoImages(img1, img2): #returns similarity score between two jpeg images
 	if img1[len(img1)-4:] != ".jpg" and img1[len(img1)-4:] != ".jpeg":
 		img1 += ".jpg"
