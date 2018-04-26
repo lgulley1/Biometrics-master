@@ -43,7 +43,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS MOUSE_DATA
 			 rightClick real, 
 			 time real, 
 			 movementSpeeds text,
-			 faceScore real,
 			 username TEXT, 
 			 FOREIGN KEY(username) REFERENCES USER(username))''')
 
@@ -63,7 +62,7 @@ def getAllMouseData():
 	for row in data:
 		stringFreq = row[2]
 		freq = ast.literal_eval(stringFreq)
-		dataObject = MouseData().newMD(row[0], row[1], freq, row[3], row[5])
+		dataObject = MouseData().newMD(row[0], row[1], freq, row[3], row[4])
 		dataObjs.append(dataObject)
 	return dataObjs
 
@@ -200,9 +199,6 @@ def recordResults():
 	global leftClicks
 	global rightClicks
 	global movement_speed
-	global faceScore
-	#DEBUG
-	faceScore = 0
 
 	#divides each quadrant with a value > 0 by the total number of quadrants with a value > 0
 	movement_count = {}
@@ -259,8 +255,8 @@ def recordResults():
 		print('Rejected.')
 
 	if not userExists(curr.username):
-		c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, faceScore, username) VALUES(?,?,?,?,?,?)''',
-	 	(leftClicks, rightClicks, quadFreqString, movement_speed, faceScore, username ))
+		c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
+	 	(leftClicks, rightClicks, quadFreqString, movement_speed, username ))
 		conn.commit()
 	conn.close()
 	
