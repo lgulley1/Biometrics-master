@@ -161,32 +161,14 @@ def createScoresFor(currentData: MouseData):
 	for user in scores:
 		print(scores[user][0])
 
-	#[(username,[scores])]
-	leftClickSorted = sorted(scores.items(), key=lambda scores: scores[1][0])
-	leftClickRanks = {}
-	for i in range(0, len(leftClickSorted)):
-		leftClickRanks.update({leftClickSorted[i][0] : leftClickSorted[i][1][0]}) #last element defines what part of list
+	userFinalRanks = {}
 
-	rightClickSorted = sorted(scores.items(), key=lambda scores: scores[1][1])
-	rightClickRanks = {}
-	for i in range(0, len(rightClickSorted)):
-		rightClickRanks.update({rightClickSorted[i][0] : rightClickSorted[i][1][1]})
+	for user in scores:
+		finalRank = scores[user][0]*leftClickWeight + scores[user][1]*rightClickWeight + scores[user][2]*timeFreqWeight + scores[user][3]*movementSpeedWeight
+		userFinalRanks.update({user : finalRank})
 
-	timesSorted = sorted(scores.items(), key=lambda scores: scores[1][2])
-	timeRanks = {}
-	for i in range(0, len(timesSorted)):
-		timeRanks.update({timesSorted[i][0] : timesSorted[i][1][2]})
-
-	speedSorted = sorted(scores.items(), key=lambda scores: scores[1][3])
-	speedRanks = {}
-	for i in range(0, len(speedSorted)):
-		speedRanks.update({speedSorted[i][0] : speedSorted[i][1][3]})
-
-	print("sorted left: " + str(leftClickRanks))
-	print("sorted right: " + str(rightClickRanks))
-	print("sorted time: " + str(timeRanks))
-	print("sorted speed: " + str(speedRanks))
-	return score
+	sortedRanks = sorted(userFinalRanks.items(), key=lambda x:x[1])
+	return sortedRanks
 
 
 	
