@@ -152,16 +152,12 @@ def createScoresFor(currentData: MouseData):
 	for d in data:	
 		lDiff = abs(currentData.leftclick - d.leftclick)
 		rDiff = abs(currentData.rightclick - d.rightclick)
-		print(currentData.time)
-		print(d.time)
 		tDiff = counter_cosine_similarity(currentData.time, d.time)
 		mDiff = abs(currentData.movemementSpeed - float(d.movemementSpeed))
 		scores.update({d.username: [lDiff, rDiff, tDiff, mDiff]})
 	#do the comparisons and give ranks for each metric
 	for user in scores:
-		print(scores[user][0])
-
-
+		
 	return score
 
 
