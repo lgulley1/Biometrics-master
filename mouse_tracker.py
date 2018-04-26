@@ -33,10 +33,6 @@ class MouseData:
 		self.username = u
 		return self
 
-
-#DEBUG
-username = str(random.randint(0,3242342352))
-
 #db setup
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
@@ -69,14 +65,6 @@ def getAllMouseData():
 		dataObject = MouseData().newMD(row[0], row[1], freq, row[3], row[4])
 		dataObjs.append(dataObject)
 	return dataObjs
-
-
-
-
-#add user if they dont already exist
-if(userExists(username) == False):
-	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
-	
 
 #forces game to wait until left click on top left of screen
 startGame = False
@@ -114,13 +102,11 @@ timeFreqWeight = .6
 movementSpeedWeight = .2
 #add user if they dont already exist and start game
 username = input("Please enter a username: ")
-while(True):
-	try:
-		if(userExists(username) == False):
-			c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
-			break
-	except:
-		username = input("Username invalid, choose another: ")
+
+try:
+	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
+except:
+	print('testing...')
 
 print("Recording starting in " + str(delay) + " seconds...")
 startTime = timeit.default_timer()
@@ -169,9 +155,6 @@ def createScoresFor(currentData: MouseData):
 
 	sortedRanks = sorted(userFinalRanks.items(), key=lambda x:x[1])
 	return sortedRanks
-
-
-	
 
 
 def countOccurrences(s): #count number of occurences in string (s), based on distance of (DISTANCE), returns dictionary
@@ -258,11 +241,26 @@ def recordResults():
 
 	#records all above results
 	#Save to the database
-	c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
-	 (leftClicks, rightClicks, quadFreqString, movement_speed, username ))
-	conn.commit()
+
 	curr = MouseData().newMD(leftClicks, rightClicks, safeFreq, movement_speed, username)
 	print(createScoresFor(curr))
+	ranks = createScoresFor(curr)
+
+	index = -1
+	for i in range(0, len(ranks)):
+		if ranks[i][0] == curr.username:
+			index = i
+
+	#determine if user valid
+	if index != -1 and index <= 3:
+		print('Accepted.')
+	else:
+		print('Rejected.')
+
+	if not userExists(curr.username):
+		c.execute('''INSERT INTO MOUSE_DATA(leftClick, rightClick, time, movementSpeeds, username) VALUES(?,?,?,?,?)''',
+	 	(leftClicks, rightClicks, quadFreqString, movement_speed, username ))
+		conn.commit()
 	conn.close()
 	
 
