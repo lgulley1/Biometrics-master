@@ -126,7 +126,8 @@ def counter_cosine_similarity(c1, c2): #find similarity score between two dictio
     dotprod = sum(c1.get(k, 0) * c2.get(k, 0) for k in terms)
     magA = math.sqrt(sum(c1.get(k, 0)**2 for k in terms))
     magB = math.sqrt(sum(c2.get(k, 0)**2 for k in terms))
-    return round((dotprod / (magA * magB)), 2)
+    result = round((dotprod / (magA * magB)), 2) % 1
+    return result
 
 
 #create similarity scores for all values based on current data retrieved during execution
@@ -138,17 +139,11 @@ def createScoresFor(currentData: MouseData):
 	for d in data:	
 		lDiff = abs(currentData.leftclick - d.leftclick)
 		rDiff = abs(currentData.rightclick - d.rightclick)
-		print(currentData.time)
-		print(d.time)
-		tDiff = counter_cosine_similarity(currentData.time, d.time)
+		tDiff = 1 - counter_cosine_similarity(currentData.time, d.time)
 		mDiff = abs(currentData.movemementSpeed - float(d.movemementSpeed))
 		scores.update({d.username: [lDiff, rDiff, tDiff, mDiff]})
-	#do the comparisons and give ranks for each metric
-	for user in scores:
-		print(scores[user][0])
 
 	userFinalRanks = {}
-
 	for user in scores:
 		finalRank = scores[user][0]*leftClickWeight + scores[user][1]*rightClickWeight + scores[user][2]*timeFreqWeight + scores[user][3]*movementSpeedWeight
 		userFinalRanks.update({user : finalRank})
@@ -243,7 +238,6 @@ def recordResults():
 	#Save to the database
 
 	curr = MouseData().newMD(leftClicks, rightClicks, safeFreq, movement_speed, username)
-	print(createScoresFor(curr))
 	ranks = createScoresFor(curr)
 
 	index = -1
@@ -251,6 +245,9 @@ def recordResults():
 		if ranks[i][0] == curr.username:
 			index = i
 
+	print('current user ranks')
+	#print ranks
+	print(str(ranks))
 	#determine if user valid
 	if index != -1 and index <= 3:
 		print('Accepted.')
