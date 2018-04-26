@@ -83,7 +83,7 @@ startGame = False
 
 #the number of quadrants is the square of this number
 gridSize = 5
-delay = 4 #set delay for recording after top-left click
+delay = 0 #set delay for recording after top-left click
 
 #stores current position of mouse and time since last quadrant transfer
 pos = -1
@@ -146,7 +146,7 @@ def counter_cosine_similarity(c1, c2): #find similarity score between two dictio
 #create similarity scores for all values based on current data retrieved during execution
 #return weighted similarity score along with username (username, score)
 def createScoresFor(currentData: MouseData):
-	scores = []
+	scores = {}
 	score = 0
 	data = getAllMouseData()
 	for d in data:	
@@ -155,8 +155,13 @@ def createScoresFor(currentData: MouseData):
 		print(currentData.time)
 		print(d.time)
 		tDiff = counter_cosine_similarity(currentData.time, d.time)
-		mDiff = abs(currentData.movemementSpeed)
-		print(d.username, lDiff, rDiff, tDiff, mDiff)
+		mDiff = abs(currentData.movemementSpeed - float(d.movemementSpeed))
+		scores.update({d.username: [lDiff, rDiff, tDiff, mDiff]})
+	#do the comparisons and give ranks for each metric
+	for user in scores:
+		print(scores[user][0])
+
+
 	return score
 
 
