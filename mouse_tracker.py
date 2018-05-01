@@ -16,6 +16,11 @@ import math
 import sqlite3
 import random
 import ast
+import face_recognition
+import cv2
+from cv2 import *
+from shutil import copyfile
+import os
 
 #classes
 class MouseData:
@@ -34,7 +39,7 @@ class MouseData:
 		return self
 
 #db setup
-conn = sqlite3.connect('test.db')
+conn = sqlite3.connect('test1.db')
 c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS USER
              (username TEXT PRIMARY KEY)''')
@@ -100,13 +105,60 @@ leftClickWeight = .1
 rightClickWeight = .1
 timeFreqWeight = .6
 movementSpeedWeight = .2
+
+def compareTwoImages(img1, img2): #returns similarity score between two jpeg images
+	if img1[len(img1)-4:] != ".jpg" and img1[len(img1)-4:] != ".jpeg":
+		img1 += ".jpg"
+	if img2[len(img2)-4:] != ".jpg" and img2[len(img2)-4:] != ".jpeg":
+		img2 += ".jpg"
+	img1_loaded = face_recognition.load_image_file(img1)
+	img2_loaded = face_recognition.load_image_file(img2)
+	img1_encoded = [face_recognition.face_encodings(img1_loaded)[0]]
+	img2_encoded = face_recognition.face_encodings(img2_loaded)[0]
+	face_distance = face_recognition.face_distance(img1_encoded, img2_encoded)
+	return face_distance[0]
+
+def captureImage(): #capture faces from webcam and save in format userX.jpg
+	cam = cv2.VideoCapture(0)
+	s, img = cam.read()
+	cam.release()
+	return img
+
 #add user if they dont already exist and start game
 username = input("Please enter a username: ")
-
+unique_user = True
 try:
 	c.execute('''INSERT INTO USER(username) VALUES(?)''', (username,))
 except:
 	print('testing...')
+	unique_user = False
+
+print("Please select an option:\n1. Take Photo\n2. Upload Photo:")
+option = input()
+if option == '1':
+	img = captureImage()
+	if(unique_user):
+		imwrite(username + ".jpg", img)
+	imwrite("currentUser.jpg", img)
+else:
+	print("Add file to main folder and enter file name:")
+	photoPath = input()
+	if(unique_user):
+		copyfile(imgLocation, '/' + username + '.jpg')
+	copyfile(imgLocation, '/currentUser.jpg')
+
+photoRanks = {}
+for filename in os.listdir(): #if detecting face in image fails, assign value of 1
+	if (filename.endswith(".jpg") or filename.endswith(".jpeg")) and filename != 'currentUser.jpg':
+		try:
+			photoRanks.update({filename[0:len(filename)-4] : compareTwoImages('currentUser.jpg', filename)})
+		except:
+			photoRanks.update({filename[0:len(filename)-4] : 1})
+
+sortedPhotoRanks = sorted(photoRanks.items(), key=lambda x:x[1])
+
+
+
 
 print("Recording starting in " + str(delay) + " seconds...")
 startTime = timeit.default_timer()
@@ -245,11 +297,20 @@ def recordResults():
 		if ranks[i][0] == curr.username:
 			index = i
 
+	index2 = -1
+	for i in range(0, len(sortedPhotoRanks)):
+		if sortedPhotoRanks[i][0] == curr.username:
+			index2 = i
+
 	print('current user ranks')
 	#print ranks
 	print(str(ranks))
+
+	print('current photo ranks')
+	print(str(sortedPhotoRanks))
+
 	#determine if user valid
-	if index != -1 and index <= 3:
+	if not unique_user and index != -1 and index <= 2 and index2 != -1 and index2 <= 2:
 		print('Accepted.')
 	else:
 		print('Rejected.')
